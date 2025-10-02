@@ -22,7 +22,7 @@ pipeline {
         container('esp-idf') {
           withEnv(['IDF_PATH_FORCE=1']) {
             sh '''
-              . $IDF_PATH/export.sh
+              . \$IDF_PATH/export.sh
               idf.py --version
             '''
           }
@@ -36,8 +36,8 @@ pipeline {
           dir("\${PROJECT_PATH}") {
             withEnv(['IDF_PATH_FORCE=1']) {
               sh '''
-                . $IDF_PATH/export.sh
-                idf.py --preview set-target $IDF_TARGET
+                . \$IDF_PATH/export.sh
+                idf.py --preview set-target \$IDF_TARGET
               '''
             }
           }
@@ -51,7 +51,7 @@ pipeline {
           dir("\${PROJECT_PATH}") {
             withEnv(['IDF_PATH_FORCE=1']) {
               sh '''
-                . $IDF_PATH/export.sh
+                . \$IDF_PATH/export.sh
                 idf.py --preview build
               '''
             }
