@@ -6,8 +6,8 @@ pipelineJob('esp32-p4-brookesia-demo') {
 pipeline {
   agent { label 'esp32-p4' }
   environment {
-    IDF_TARGET = 'esp32p4'
-    IDF_PATH   = '/opt/esp/idf'
+    IDF_TARGET   = 'esp32p4'
+    IDF_PATH     = '/opt/esp/idf'
     PROJECT_PATH = 'examples/esp32-p4-function-ev-board/examples/esp_brookesia_phone'
   }
   stages {
@@ -22,7 +22,7 @@ pipeline {
         container('esp-idf') {
           withEnv(['IDF_PATH_FORCE=1']) {
             sh '''
-              . $IDF_PATH/export.sh
+              . \$IDF_PATH/export.sh
               idf.py --version
             '''
           }
@@ -36,8 +36,8 @@ pipeline {
           dir("\${PROJECT_PATH}") {
             withEnv(['IDF_PATH_FORCE=1']) {
               sh '''
-                . $IDF_PATH/export.sh
-                idf.py --preview set-target $IDF_TARGET
+                . \$IDF_PATH/export.sh
+                idf.py --preview set-target \$IDF_TARGET
               '''
             }
           }
@@ -51,7 +51,7 @@ pipeline {
           dir("\${PROJECT_PATH}") {
             withEnv(['IDF_PATH_FORCE=1']) {
               sh '''
-                . $IDF_PATH/export.sh
+                . \$IDF_PATH/export.sh
                 idf.py --preview build
               '''
             }
@@ -72,7 +72,7 @@ pipeline {
   }
   post {
     success {
-      echo "ESP32-P4 build completed successfully"
+      echo "ESP32-P4 Brookesia Phone demo build completed successfully"
     }
     failure {
       echo "Build failed — check logs"
