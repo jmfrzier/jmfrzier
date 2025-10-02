@@ -72,10 +72,10 @@ pipeline {
   }
   post {
     success {
-      echo "✅ ESP32-P4 LVGL Demo v9 build completed successfully"
+      echo "ESP32-P4 LVGL Demo v9 build completed successfully"
     }
     failure {
-      echo "❌ Build failed — check logs"
+      echo "Build failed — check logs"
     }
   }
 }
