@@ -47,14 +47,30 @@ pipeline {
       }
     }
 
-    stage('Build') {
+    stage('Build & Analyze') {
       steps {
         container('esp-idf') {
-          dir("\${PROJECT_PATH}") {
+          dir("${PROJECT_PATH}") {
             withEnv(['IDF_PATH_FORCE=1']) {
               sh '''
-                . \$IDF_PATH/export.sh
+                . $IDF_PATH/export.sh
+            
+                # 1. Build the project to generate compile_commands.json
+                # ESP-IDF generates this in the 'build' directory by default
                 idf.py --preview build
+            
+                # 2. Install cppcheck if it's missing (Debian/Ubuntu based containers)
+                if ! command -v cppcheck &> /dev/null; then
+                    apt-get update && apt-get install -y cppcheck
+                fi
+
+                # 3. Run Static Analysis
+                # We use the build/compile_commands.json to tell cppcheck about your 
+                # ESP32-P4 include paths and compiler defines.
+                cppcheck --project=build/compile_commands.json \
+                         --xml --xml-version=2 \
+                         --enable=warning,style,performance,portability \
+                         2> build/cppcheck-report.xml
               '''
             }
           }
@@ -79,7 +95,9 @@ pipeline {
                   -Dsonar.projectKey=\${SONAR_PROJECT} \\
                   -Dsonar.projectName="ESP32-P4 Brookesia Demo" \\
                   -Dsonar.sources=. \\
-                  -Dsonar.language=c,c++ \\
+                  -Dsonar.cxx.file.suffixes=.cpp,.c,.h,.hpp \
+  		  -Dsonar.cxx.cppcheck.reportPaths=build/cppcheck-report.xml \
+  	          -Dsonar.cxx.cobertura.reportPaths=build/coverage.xml
                   -Dsonar.host.url=\${SONARQUBE_URL} \\
                   -Dsonar.token=\${SONAR_TOKEN} \\
                   -Dsonar.sourceEncoding=UTF-8 \\
