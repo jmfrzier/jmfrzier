@@ -50,10 +50,10 @@ pipeline {
     stage('Build & Analyze') {
       steps {
         container('esp-idf') {
-          dir("${PROJECT_PATH}") {
+          dir("\${PROJECT_PATH}") {
             withEnv(['IDF_PATH_FORCE=1']) {
               sh '''
-                . $IDF_PATH/export.sh
+                . \$IDF_PATH/export.sh
             
                 # 1. Build the project to generate compile_commands.json
                 # ESP-IDF generates this in the 'build' directory by default
@@ -95,9 +95,9 @@ pipeline {
                   -Dsonar.projectKey=\${SONAR_PROJECT} \\
                   -Dsonar.projectName="ESP32-P4 Brookesia Demo" \\
                   -Dsonar.sources=. \\
-                  -Dsonar.cxx.file.suffixes=.cpp,.c,.h,.hpp \
-  		  -Dsonar.cxx.cppcheck.reportPaths=build/cppcheck-report.xml \
-  	          -Dsonar.cxx.cobertura.reportPaths=build/coverage.xml
+                  -Dsonar.cxx.file.suffixes=.cpp,.c,.h,.hpp \\
+                  -Dsonar.cxx.cppcheck.reportPaths=build/cppcheck-report.xml \\
+                  -Dsonar.cxx.cobertura.reportPaths=build/coverage.xml \\
                   -Dsonar.host.url=\${SONARQUBE_URL} \\
                   -Dsonar.token=\${SONAR_TOKEN} \\
                   -Dsonar.sourceEncoding=UTF-8 \\
