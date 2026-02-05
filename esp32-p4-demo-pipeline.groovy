@@ -78,7 +78,8 @@ pipeline {
                 sonar-scanner \\
                   -Dsonar.projectKey=\${SONAR_PROJECT} \\
                   -Dsonar.projectName="ESP32-P4 Brookesia Demo" \\
-                  -Dsonar.sources=main \\
+                  -Dsonar.sources=. \\
+                  -Dsonar.language=c,c++ \\
                   -Dsonar.host.url=\${SONARQUBE_URL} \\
                   -Dsonar.token=\${SONAR_TOKEN} \\
                   -Dsonar.sourceEncoding=UTF-8 \\
