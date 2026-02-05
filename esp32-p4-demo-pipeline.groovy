@@ -1,14 +1,16 @@
 pipelineJob('esp32-p4-brookesia-demo') {
-  description('Build the ESP32-P4 Brookesia Phone demo')
+  description('Build the ESP32-P4 Brookesia Phone demo with SonarQube analysis')
   definition {
     cps {
       script("""
 pipeline {
   agent { label 'esp32-p4' }
   environment {
-    IDF_TARGET   = 'esp32p4'
-    IDF_PATH     = '/opt/esp/idf'
-    PROJECT_PATH = 'examples/esp32-p4-function-ev-board/examples/esp_brookesia_phone'
+    IDF_TARGET     = 'esp32p4'
+    IDF_PATH       = '/opt/esp/idf'
+    PROJECT_PATH   = 'examples/esp32-p4-function-ev-board/examples/esp_brookesia_phone'
+    SONARQUBE_URL  = 'http://sonarqube-sonarqube.sonarqube.svc.cluster.local:9000'
+    SONAR_PROJECT  = 'esp32-p4-brookesia-demo'
   }
   stages {
     stage('Checkout') {
@@ -60,6 +62,34 @@ pipeline {
       }
     }
 
+    stage('SonarQube Analysis') {
+      steps {
+        container('esp-idf') {
+          dir("\${PROJECT_PATH}") {
+            withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
+              sh '''
+                # Install sonar-scanner
+                export SONAR_SCANNER_VERSION=5.0.1.3006
+                curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux.zip
+                unzip -q sonar-scanner.zip
+                export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:\$PATH"
+
+                # Run SonarQube analysis
+                sonar-scanner \\
+                  -Dsonar.projectKey=\${SONAR_PROJECT} \\
+                  -Dsonar.projectName="ESP32-P4 Brookesia Demo" \\
+                  -Dsonar.sources=main \\
+                  -Dsonar.host.url=\${SONARQUBE_URL} \\
+                  -Dsonar.token=\${SONAR_TOKEN} \\
+                  -Dsonar.sourceEncoding=UTF-8 \\
+                  -Dsonar.exclusions=build/**,managed_components/**
+              '''
+            }
+          }
+        }
+      }
+    }
+
     stage('Archive') {
       steps {
         dir("\${PROJECT_PATH}") {
@@ -72,10 +102,10 @@ pipeline {
   }
   post {
     success {
-      echo "ESP32-P4 Brookesia Phone demo build completed successfully"
+      echo "ESP32-P4 Brookesia Phone demo build and analysis completed successfully"
     }
     failure {
-      echo "Build failed — check logs"
+      echo "Build or analysis failed — check logs"
     }
   }
 }
