@@ -71,6 +71,20 @@ pipeline {
                          --xml --xml-version=2 \
                          --enable=warning,style,performance,portability \
                          2> build/cppcheck-report.xml
+
+                # 4. Generate code coverage with gcov + gcovr
+                # Rebuild with coverage flags
+                idf.py --preview build -- -DCMAKE_C_FLAGS="--coverage -fprofile-arcs -ftest-coverage" -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+
+                # Install gcovr if missing
+                if ! command -v gcovr &> /dev/null; then
+                    pip install gcovr
+                fi
+
+                # Generate Cobertura XML coverage report
+                gcovr --root . \
+                      --filter '(?!.*(build|managed_components))' \
+                      --xml --output build/coverage.xml
               '''
             }
           }
@@ -95,7 +109,8 @@ pipeline {
                   -Dsonar.projectKey=\${SONAR_PROJECT} \\
                   -Dsonar.projectName="ESP32-P4 Brookesia Demo" \\
                   -Dsonar.sources=. \\
-                  -Dsonar.cxx.file.suffixes=.cpp,.c,.h,.hpp \\
+                  -Dsonar.language=c++ \\
+                  -Dsonar.cxx.file.suffixes=.c,.cpp,.cc,.cxx,.h,.hpp,.hh \\
                   -Dsonar.cxx.cppcheck.reportPaths=build/cppcheck-report.xml \\
                   -Dsonar.cxx.cobertura.reportPaths=build/coverage.xml \\
                   -Dsonar.host.url=\${SONARQUBE_URL} \\
