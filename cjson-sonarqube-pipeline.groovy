@@ -69,13 +69,13 @@ pipeline {
 
             # Code coverage (Cobertura XML)
             gcovr --root . \\
-                  --filter 'cJSON\\.c' --filter 'cJSON_Utils\\.c' \\
+                  --filter 'cJSON\\\\.c' --filter 'cJSON_Utils\\\\.c' \\
                   --exclude 'build/' --exclude 'test/' --exclude 'fuzzing/' \\
                   --xml --output build/coverage.xml
 
             # Print summary to console
             gcovr --root . \\
-                  --filter 'cJSON\\.c' --filter 'cJSON_Utils\\.c' \\
+                  --filter 'cJSON\\\\.c' --filter 'cJSON_Utils\\\\.c' \\
                   --exclude 'build/' --exclude 'test/' --exclude 'fuzzing/'
           '''
         }
