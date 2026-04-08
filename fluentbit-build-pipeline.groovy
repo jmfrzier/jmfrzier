@@ -119,7 +119,8 @@ pipelineJob('fluentbit-build-pipeline') {
                           -Dsonar.host.url=\${SONARQUBE_URL} \\
                           -Dsonar.login=\${SONAR_TOKEN} \\
                           -Dsonar.sourceEncoding=UTF-8 \\
-                          -Dsonar.exclusions=build-*/**,artifacts/**
+			  -Dsonar.exclusions=build-*/**,artifacts/**,**/*.java \\
+  			  -Dsonar.java.binaries=.
                       '''
                     }
                   }
