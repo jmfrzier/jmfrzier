@@ -1,5 +1,5 @@
 pipelineJob('fluentbit-multi-arch-build') {
-  description('Build Fluent Bit from source for amd64 and arm64, push container images to Harbor')
+  description('Build Fluent Bit from source for amd64 and arm64, push container images to Harbor, run SonarQube analysis')
   definition {
     cps {
       script("""
@@ -11,7 +11,10 @@ pipeline {
     HARBOR_REGISTRY   = '192.168.0.167'
     HARBOR_PROJECT    = 'fluentbit'
     IMAGE_NAME        = 'fluent-bit'
+    SONARQUBE_URL     = 'http://sonarqube-sonarqube.sonarqube.svc.cluster.local:9000'
+    SONAR_PROJECT     = 'fluentbit'
   }
+
   stages {
     stage('Checkout') {
       steps {
@@ -30,7 +33,7 @@ pipeline {
               libyaml-dev libssl-dev \\
               gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
               buildah fuse-overlayfs \\
-              curl jq
+              curl cppcheck unzip
           '''
         }
       }
@@ -92,6 +95,46 @@ pipeline {
       }
     }
 
+    stage('SonarQube Analysis') {
+      steps {
+        container('gcc') {
+          dir('fluent-bit-src') {
+            withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
+              sh '''
+                # Run cppcheck if not already done
+                if [ ! -f build-amd64/cppcheck-report.xml ]; then
+                  mkdir -p build-amd64
+                  cppcheck --project=build-amd64/compile_commands.json \\
+                           --xml --xml-version=2 \\
+                           --enable=warning,style,performance,portability \\
+                           2> build-amd64/cppcheck-report.xml
+                fi
+
+                # Install sonar-scanner CLI
+                SONAR_SCANNER_VERSION=5.0.1.3006
+                curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux.zip
+                unzip -q sonar-scanner.zip
+                export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:\$PATH"
+
+                # Run SonarQube analysis
+                sonar-scanner \\
+                  -Dsonar.projectKey=\${SONAR_PROJECT} \\
+                  -Dsonar.projectName="Fluent Bit" \\
+                  -Dsonar.sources=. \\
+                  -Dsonar.language=c++ \\
+                  -Dsonar.cxx.file.suffixes=.c,.cpp,.h \\
+                  -Dsonar.cxx.cppcheck.reportPaths=build-amd64/cppcheck-report.xml \\
+                  -Dsonar.host.url=\${SONARQUBE_URL} \\
+                  -Dsonar.login=\$SONAR_TOKEN \\
+                  -Dsonar.sourceEncoding=UTF-8 \\
+                  -Dsonar.exclusions=build-*/**,artifacts/**
+              '''
+            }
+          }
+        }
+      }
+    }
+
     stage('Archive Artifacts') {
       steps {
         sh '''
@@ -108,7 +151,7 @@ pipeline {
         container('gcc') {
           withCredentials([usernamePassword(credentialsId: 'harbor-robot-token', usernameVariable: 'HARBOR_USER', passwordVariable: 'HARBOR_PASS')]) {
             sh '''
-              # Create Dockerfile for amd64
+              # Dockerfiles
               cat > Dockerfile.amd64 << 'DOCKERFILE'
               FROM debian:bookworm-slim
               RUN apt-get update && apt-get install -y --no-install-recommends \\
@@ -119,7 +162,6 @@ pipeline {
               ENTRYPOINT ["/usr/local/bin/fluent-bit"]
               DOCKERFILE
 
-              # Create Dockerfile for arm64
               cat > Dockerfile.arm64 << 'DOCKERFILE'
               FROM arm64v8/debian:bookworm-slim
               RUN apt-get update && apt-get install -y --no-install-recommends \\
@@ -144,15 +186,10 @@ pipeline {
                 -t \${HARBOR_REGISTRY}/\${HARBOR_PROJECT}/\${IMAGE_NAME}:\${FLUENTBIT_VERSION}-arm64 .
               rm -f ./fluent-bit
 
-              # Push to Harbor
-              buildah push --storage-driver vfs \\
-                --tls-verify=false \\
-                --creds "\$HARBOR_USER:\$HARBOR_PASS" \\
+              # Push images
+              buildah push --storage-driver vfs --tls-verify=false --creds "\$HARBOR_USER:\$HARBOR_PASS" \\
                 \${HARBOR_REGISTRY}/\${HARBOR_PROJECT}/\${IMAGE_NAME}:\${FLUENTBIT_VERSION}-amd64
-
-              buildah push --storage-driver vfs \\
-                --tls-verify=false \\
-                --creds "\$HARBOR_USER:\$HARBOR_PASS" \\
+              buildah push --storage-driver vfs --tls-verify=false --creds "\$HARBOR_USER:\$HARBOR_PASS" \\
                 \${HARBOR_REGISTRY}/\${HARBOR_PROJECT}/\${IMAGE_NAME}:\${FLUENTBIT_VERSION}-arm64
 
               echo "[SUCCESS] Both images pushed to Harbor"
@@ -162,9 +199,10 @@ pipeline {
       }
     }
   }
+
   post {
     success {
-      echo "Fluent Bit \${FLUENTBIT_VERSION} multi-arch build and push completed successfully"
+      echo "Fluent Bit \${FLUENTBIT_VERSION} multi-arch build, SonarQube analysis, and push completed successfully"
     }
     failure {
       echo "Build or push failed — check logs"
