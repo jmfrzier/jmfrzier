@@ -16,7 +16,7 @@ pipeline {
     stage('Checkout') {
       steps {
         container('gcc') {
-          sh 'git clone --depth 1 --branch \${FLUENTBIT_VERSION} https://github.com/fluent/fluent-bit.git fluent-bit-src'
+          sh 'rm -rf fluent-bit-src && git clone --depth 1 --branch \${FLUENTBIT_VERSION} https://github.com/fluent/fluent-bit.git fluent-bit-src'
         }
       }
     }
