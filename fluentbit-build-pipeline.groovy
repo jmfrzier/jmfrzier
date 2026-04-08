@@ -30,12 +30,12 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
             stage('Install Build Dependencies') {
               steps {
                 container('gcc') {
-                  sh '''
+                  sh """
                     apt-get update && apt-get install -y --no-install-recommends \\
                       cmake make flex bison libyaml-dev libssl-dev \\
                       gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
                       cppcheck unzip curl buildah fuse-overlayfs
-                  '''
+                  """
                 }
               }
             }
@@ -43,7 +43,7 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
             stage('Build amd64 (static)') {
               steps {
                 container('gcc') {
-                  sh '''
+                  sh """
                     mkdir -p fluent-bit-src/build-amd64 && cd fluent-bit-src/build-amd64
                     cmake .. \\
                       -DFLB_RELEASE=On \\
@@ -55,9 +55,9 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
                       -DFLB_EXAMPLES=Off \\
                       -DFLB_HTTP_SERVER=On \\
                       -DFLB_OUT_KAFKA=Off
-                    make -j$(nproc)
+                    make -j\$(nproc)
                     ls -la bin/fluent-bit
-                  '''
+                  """
                 }
               }
             }
@@ -65,7 +65,7 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
             stage('Build arm64 (static cross-compile)') {
               steps {
                 container('gcc') {
-                  sh '''
+                  sh """
                     cat > /tmp/arm64-toolchain.cmake << 'TOOLCHAIN'
             set(CMAKE_SYSTEM_NAME Linux)
             set(CMAKE_SYSTEM_PROCESSOR aarch64)
@@ -89,9 +89,9 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
                       -DFLB_EXAMPLES=Off \\
                       -DFLB_HTTP_SERVER=On \\
                       -DFLB_OUT_KAFKA=Off
-                    make -j$(nproc)
+                    make -j\$(nproc)
                     ls -la bin/fluent-bit
-                  '''
+                  """
                 }
               }
             }
@@ -101,7 +101,7 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
                 container('gcc') {
                   dir('fluent-bit-src') {
                     withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
-                      sh '''
+                      sh """
                         if [ ! -f build-amd64/cppcheck-report.xml ]; then
                           cppcheck --project=build-amd64/compile_commands.json \\
                                    --xml --xml-version=2 \\
@@ -110,9 +110,9 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
                         fi
 
                         SONAR_SCANNER_VERSION=5.0.1.3006
-                        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip
+                        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux.zip
                         unzip -q sonar-scanner.zip
-                        export PATH="$PWD/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin:$PATH"
+                        export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:\$PATH"
 
                         sonar-scanner \\
                           -Dsonar.projectKey=${SONAR_PROJECT} \\
@@ -122,10 +122,10 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
                           -Dsonar.cxx.file.suffixes=.c,.cpp,.h \\
                           -Dsonar.cxx.cppcheck.reportPaths=build-amd64/cppcheck-report.xml \\
                           -Dsonar.host.url=${SONARQUBE_URL} \\
-                          -Dsonar.login=${SONAR_TOKEN} \\
+                          -Dsonar.login=\${SONAR_TOKEN} \\
                           -Dsonar.sourceEncoding=UTF-8 \\
                           -Dsonar.exclusions=build-*/**,artifacts/**
-                      '''
+                      """
                     }
                   }
                 }
@@ -134,11 +134,11 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
 
             stage('Archive Artifacts') {
               steps {
-                sh '''
+                sh """
                   mkdir -p artifacts
                   cp fluent-bit-src/build-amd64/bin/fluent-bit artifacts/fluent-bit-${FLUENTBIT_VERSION}-amd64
                   cp fluent-bit-src/build-arm64/bin/fluent-bit artifacts/fluent-bit-${FLUENTBIT_VERSION}-arm64
-                '''
+                """
                 archiveArtifacts artifacts: 'artifacts/*', fingerprint: true
               }
             }
@@ -147,34 +147,34 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
               steps {
                 container('gcc') {
                   withCredentials([usernamePassword(credentialsId: 'harbor-robot-token', usernameVariable: 'HARBOR_USER', passwordVariable: 'HARBOR_PASS')]) {
-                    sh '''
+                    sh """
                       for ARCH in amd64 arm64; do
-                        BINARY=fluent-bit-src/build-${ARCH}/bin/fluent-bit
-                        IMAGE_NAME=${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${IMAGE_NAME}:${FLUENTBIT_VERSION}-${ARCH}
+                        BINARY=fluent-bit-src/build-\${ARCH}/bin/fluent-bit
+                        FULL_IMAGE=${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${IMAGE_NAME}:\${FLUENTBIT_VERSION}-\${ARCH}
 
-                        ctr=$(buildah from scratch)
-                        mnt=$(buildah mount $ctr)
-                        cp $BINARY $mnt/fluent-bit
-                        buildah config --entrypoint '["/fluent-bit"]' $ctr
-                        buildah commit $ctr $IMAGE_NAME
-                        buildah push --storage-driver vfs --tls-verify=false --creds "${HARBOR_USER}:${HARBOR_PASS}" $IMAGE_NAME
-                        buildah rm $ctr
+                        ctr=\$(buildah from scratch)
+                        mnt=\$(buildah mount \$ctr)
+                        cp \$BINARY \$mnt/fluent-bit
+                        buildah config --entrypoint '["/fluent-bit"]' \$ctr
+                        buildah commit \$ctr \$FULL_IMAGE
+                        buildah push --storage-driver vfs --tls-verify=false --creds "\${HARBOR_USER}:\${HARBOR_PASS}" \$FULL_IMAGE
+                        buildah rm \$ctr
                       done
                       echo "[SUCCESS] Scratch images pushed for amd64 and arm64"
-                    '''
+                    """
                   }
                 }
               }
             }
 
-          }  # end stages
+          }
 
           post {
             success {
               echo "Fluent Bit ${FLUENTBIT_VERSION} multi-arch scratch build, SonarQube analysis, and push completed successfully"
             }
             failure {
-              echo "Build or push failed — check logs"
+              echo "Build or push failed - check logs"
             }
           }
         }
