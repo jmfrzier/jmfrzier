@@ -41,14 +41,18 @@ pipeline {
         container('gcc') {
           withCredentials([usernamePassword(credentialsId: 'harbor-robot-token', usernameVariable: 'HARBOR_USER', passwordVariable: 'HARBOR_PASS')]) {
             sh '''
-              PROJECT_EXISTS=\$(curl -s -o /dev/null -w "%{http_code}" \\
+              PROJECT_CODE=\$(curl -s -o /dev/null -w "%{http_code}" \\
+                -X GET \\
                 -u "\$HARBOR_USER:\$HARBOR_PASS" \\
-                "\${HARBOR_URL}/api/v2.0/projects?name=\${HARBOR_PROJECT}")
+                -H "accept: application/json" \\
+                -H "X-Is-Resource-Name: false" \\
+                "\${HARBOR_URL}/api/v2.0/projects/\${HARBOR_PROJECT}")
 
-              if [ "\$PROJECT_EXISTS" != "200" ]; then
+              if [ "\$PROJECT_CODE" != "200" ]; then
                 echo "[INFO] Creating Harbor project '\${HARBOR_PROJECT}'..."
                 curl -s -u "\$HARBOR_USER:\$HARBOR_PASS" \\
                   -X POST "\${HARBOR_URL}/api/v2.0/projects" \\
+                  -H "accept: application/json" \\
                   -H "Content-Type: application/json" \\
                   -d "{\\"project_name\\": \\"\${HARBOR_PROJECT}\\", \\"public\\": true}"
               else
