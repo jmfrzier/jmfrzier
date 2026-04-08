@@ -62,15 +62,15 @@ pipelineJob('fluentbit-build-pipeline') {
                 container('gcc') {
                   sh '''
                     cat > /tmp/arm64-toolchain.cmake << 'TOOLCHAIN'
-            set(CMAKE_SYSTEM_NAME Linux)
-            set(CMAKE_SYSTEM_PROCESSOR aarch64)
-            set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
-            set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
-            set(CMAKE_FIND_ROOT_PATH /usr/aarch64-linux-gnu)
-            set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-            set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-            set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-            TOOLCHAIN
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
+set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+set(CMAKE_FIND_ROOT_PATH /usr/aarch64-linux-gnu)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+TOOLCHAIN
 
                     mkdir -p fluent-bit-src/build-arm64 && cd fluent-bit-src/build-arm64
                     cmake .. \\
@@ -119,8 +119,8 @@ pipelineJob('fluentbit-build-pipeline') {
                           -Dsonar.host.url=\${SONARQUBE_URL} \\
                           -Dsonar.token=\${SONAR_TOKEN} \\
                           -Dsonar.sourceEncoding=UTF-8 \\
-			  -Dsonar.exclusions=build-*/**,artifacts/**,**/*.java \\
-  			  -Dsonar.java.binaries=.
+                          -Dsonar.exclusions=build-*/**,artifacts/**,**/*.java \\
+                          -Dsonar.java.binaries=.
                       '''
                     }
                   }
