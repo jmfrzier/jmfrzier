@@ -20,7 +20,7 @@ pipeline {
     stage('Checkout') {
       steps {
         container('gcc') {
-          sh 'rm -rf fluent-bit-src && git clone --depth 1 --branch ${FLUENTBIT_VERSION} https://github.com/fluent/fluent-bit.git fluent-bit-src'
+          sh 'rm -rf fluent-bit-src && git clone --depth 1 --branch \$FLUENTBIT_VERSION https://github.com/fluent/fluent-bit.git fluent-bit-src'
         }
       }
     }
@@ -29,9 +29,9 @@ pipeline {
       steps {
         container('gcc') {
           sh '''
-            apt-get update && apt-get install -y --no-install-recommends \
-              cmake make flex bison libyaml-dev libssl-dev \
-              gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            apt-get update && apt-get install -y --no-install-recommends \\
+              cmake make flex bison libyaml-dev libssl-dev \\
+              gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
               cppcheck unzip curl buildah fuse-overlayfs
           '''
         }
@@ -43,17 +43,17 @@ pipeline {
         container('gcc') {
           sh '''
             mkdir -p fluent-bit-src/build-amd64 && cd fluent-bit-src/build-amd64
-            cmake .. \
-              -DFLB_RELEASE=On \
-              -DFLB_TRACE=Off \
-              -DFLB_JEMALLOC=Off \
-              -DFLB_TLS=Off \
-              -DFLB_SHARED_LIB=Off \
-              -DFLB_STATIC_BUILD=On \
-              -DFLB_EXAMPLES=Off \
-              -DFLB_HTTP_SERVER=On \
+            cmake .. \\
+              -DFLB_RELEASE=On \\
+              -DFLB_TRACE=Off \\
+              -DFLB_JEMALLOC=Off \\
+              -DFLB_TLS=Off \\
+              -DFLB_SHARED_LIB=Off \\
+              -DFLB_STATIC_BUILD=On \\
+              -DFLB_EXAMPLES=Off \\
+              -DFLB_HTTP_SERVER=On \\
               -DFLB_OUT_KAFKA=Off
-            make -j$(nproc)
+            make -j\$(nproc)
             ls -la bin/fluent-bit
           '''
         }
@@ -76,18 +76,18 @@ pipeline {
             TOOLCHAIN
 
             mkdir -p fluent-bit-src/build-arm64 && cd fluent-bit-src/build-arm64
-            cmake .. \
-              -DCMAKE_TOOLCHAIN_FILE=/tmp/arm64-toolchain.cmake \
-              -DFLB_RELEASE=On \
-              -DFLB_TRACE=Off \
-              -DFLB_JEMALLOC=Off \
-              -DFLB_TLS=Off \
-              -DFLB_SHARED_LIB=Off \
-              -DFLB_STATIC_BUILD=On \
-              -DFLB_EXAMPLES=Off \
-              -DFLB_HTTP_SERVER=On \
+            cmake .. \\
+              -DCMAKE_TOOLCHAIN_FILE=/tmp/arm64-toolchain.cmake \\
+              -DFLB_RELEASE=On \\
+              -DFLB_TRACE=Off \\
+              -DFLB_JEMALLOC=Off \\
+              -DFLB_TLS=Off \\
+              -DFLB_SHARED_LIB=Off \\
+              -DFLB_STATIC_BUILD=On \\
+              -DFLB_EXAMPLES=Off \\
+              -DFLB_HTTP_SERVER=On \\
               -DFLB_OUT_KAFKA=Off
-            make -j$(nproc)
+            make -j\$(nproc)
             ls -la bin/fluent-bit
           '''
         }
@@ -100,31 +100,28 @@ pipeline {
           dir('fluent-bit-src') {
             withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
               sh '''
-                # Generate cppcheck report if not exists
                 if [ ! -f build-amd64/cppcheck-report.xml ]; then
-                  cppcheck --project=build-amd64/compile_commands.json \
-                           --xml --xml-version=2 \
-                           --enable=warning,style,performance,portability \
+                  cppcheck --project=build-amd64/compile_commands.json \\
+                           --xml --xml-version=2 \\
+                           --enable=warning,style,performance,portability \\
                            2> build-amd64/cppcheck-report.xml
                 fi
 
-                # Install sonar-scanner CLI
                 SONAR_SCANNER_VERSION=5.0.1.3006
-                curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux.zip
+                curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\$SONAR_SCANNER_VERSION-linux.zip
                 unzip -q sonar-scanner.zip
-                export PATH="$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:$PATH"
+                export PATH="\$PWD/sonar-scanner-\$SONAR_SCANNER_VERSION-linux/bin:\$PATH"
 
-                # Run SonarQube analysis
-                sonar-scanner \
-                  -Dsonar.projectKey=\${SONAR_PROJECT} \
-                  -Dsonar.projectName="Fluent Bit" \
-                  -Dsonar.sources=. \
-                  -Dsonar.language=c++ \
-                  -Dsonar.cxx.file.suffixes=.c,.cpp,.h \
-                  -Dsonar.cxx.cppcheck.reportPaths=build-amd64/cppcheck-report.xml \
-                  -Dsonar.host.url=\${SONARQUBE_URL} \
-                  -Dsonar.login=\$SONAR_TOKEN \
-                  -Dsonar.sourceEncoding=UTF-8 \
+                sonar-scanner \\
+                  -Dsonar.projectKey=\$SONAR_PROJECT \\
+                  -Dsonar.projectName="Fluent Bit" \\
+                  -Dsonar.sources=. \\
+                  -Dsonar.language=c++ \\
+                  -Dsonar.cxx.file.suffixes=.c,.cpp,.h \\
+                  -Dsonar.cxx.cppcheck.reportPaths=build-amd64/cppcheck-report.xml \\
+                  -Dsonar.host.url=\$SONARQUBE_URL \\
+                  -Dsonar.login=\$SONAR_TOKEN \\
+                  -Dsonar.sourceEncoding=UTF-8 \\
                   -Dsonar.exclusions=build-*/**,artifacts/**
               '''
             }
@@ -137,8 +134,8 @@ pipeline {
       steps {
         sh '''
           mkdir -p artifacts
-          cp fluent-bit-src/build-amd64/bin/fluent-bit artifacts/fluent-bit-\${FLUENTBIT_VERSION}-amd64
-          cp fluent-bit-src/build-arm64/bin/fluent-bit artifacts/fluent-bit-\${FLUENTBIT_VERSION}-arm64
+          cp fluent-bit-src/build-amd64/bin/fluent-bit artifacts/fluent-bit-\$FLUENTBIT_VERSION-amd64
+          cp fluent-bit-src/build-arm64/bin/fluent-bit artifacts/fluent-bit-\$FLUENTBIT_VERSION-arm64
         '''
         archiveArtifacts artifacts: 'artifacts/*', fingerprint: true
       }
@@ -151,10 +148,10 @@ pipeline {
             sh '''
               for ARCH in amd64 arm64; do
                 BINARY=fluent-bit-src/build-\$ARCH/bin/fluent-bit
-                IMAGE_NAME=\${HARBOR_REGISTRY}/\${HARBOR_PROJECT}/\${IMAGE_NAME}:\${FLUENTBIT_VERSION}-\$ARCH
+                IMAGE_NAME=\$HARBOR_REGISTRY/\$HARBOR_PROJECT/\$IMAGE_NAME:\$FLUENTBIT_VERSION-\$ARCH
 
-                ctr=$(buildah from scratch)
-                mnt=$(buildah mount \$ctr)
+                ctr=\$(buildah from scratch)
+                mnt=\$(buildah mount \$ctr)
                 cp \$BINARY \$mnt/fluent-bit
                 buildah config --entrypoint '["/fluent-bit"]' \$ctr
                 buildah commit \$ctr \$IMAGE_NAME
@@ -172,7 +169,7 @@ pipeline {
 
   post {
     success {
-      echo "Fluent Bit ${FLUENTBIT_VERSION} multi-arch scratch build, SonarQube analysis, and push completed successfully"
+      echo "Fluent Bit \$FLUENTBIT_VERSION multi-arch scratch build, SonarQube analysis, and push completed successfully"
     }
     failure {
       echo "Build or push failed — check logs"
