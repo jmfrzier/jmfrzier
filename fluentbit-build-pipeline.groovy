@@ -21,6 +21,7 @@ pipelineJob('fluentbit-build-pipeline') {
                 }
               }
             }
+
             stage('Install Build Dependencies') {
               steps {
                 container('gcc') {
@@ -33,7 +34,110 @@ pipelineJob('fluentbit-build-pipeline') {
                 }
               }
             }
-            // ... keep the rest of your stages exactly the same ...
+
+            stage('Build amd64 (static)') {
+              steps {
+                container('gcc') {
+                  sh '''
+                    mkdir -p fluent-bit-src/build-amd64 && cd fluent-bit-src/build-amd64
+                    cmake .. \\
+                      -DFLB_RELEASE=On \\
+                      -DFLB_TRACE=Off \\
+                      -DFLB_JEMALLOC=Off \\
+                      -DFLB_TLS=Off \\
+                      -DFLB_SHARED_LIB=Off \\
+                      -DFLB_STATIC_BUILD=On \\
+                      -DFLB_EXAMPLES=Off \\
+                      -DFLB_HTTP_SERVER=On \\
+                      -DFLB_OUT_KAFKA=Off
+                    make -j\$(nproc)
+                    ls -la bin/fluent-bit
+                  '''
+                }
+              }
+            }
+
+            stage('Build arm64 (static cross-compile)') {
+              steps {
+                container('gcc') {
+                  sh '''
+                    cat > /tmp/arm64-toolchain.cmake << 'TOOLCHAIN'
+            set(CMAKE_SYSTEM_NAME Linux)
+            set(CMAKE_SYSTEM_PROCESSOR aarch64)
+            set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+            set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+            set(CMAKE_FIND_ROOT_PATH /usr/aarch64-linux-gnu)
+            set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+            set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+            set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+            TOOLCHAIN
+
+                    mkdir -p fluent-bit-src/build-arm64 && cd fluent-bit-src/build-arm64
+                    cmake .. \\
+                      -DCMAKE_TOOLCHAIN_FILE=/tmp/arm64-toolchain.cmake \\
+                      -DFLB_RELEASE=On \\
+                      -DFLB_TRACE=Off \\
+                      -DFLB_JEMALLOC=Off \\
+                      -DFLB_TLS=Off \\
+                      -DFLB_SHARED_LIB=Off \\
+                      -DFLB_STATIC_BUILD=On \\
+                      -DFLB_EXAMPLES=Off \\
+                      -DFLB_HTTP_SERVER=On \\
+                      -DFLB_OUT_KAFKA=Off
+                    make -j\$(nproc)
+                    ls -la bin/fluent-bit
+                  '''
+                }
+              }
+            }
+
+            stage('SonarQube Analysis') {
+              steps {
+                container('gcc') {
+                  dir('fluent-bit-src') {
+                    withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
+                      sh '''
+                        if [ ! -f build-amd64/cppcheck-report.xml ]; then
+                          cppcheck --project=build-amd64/compile_commands.json \\
+                                   --xml --xml-version=2 \\
+                                   --enable=warning,style,performance,portability \\
+                                   2> build-amd64/cppcheck-report.xml || true
+                        fi
+
+                        SONAR_SCANNER_VERSION=5.0.1.3006
+                        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux.zip
+                        unzip -q sonar-scanner.zip
+                        export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:\$PATH"
+
+                        sonar-scanner \\
+                          -Dsonar.projectKey=\${SONAR_PROJECT} \\
+                          -Dsonar.projectName="Fluent Bit" \\
+                          -Dsonar.sources=. \\
+                          -Dsonar.language=c++ \\
+                          -Dsonar.cxx.file.suffixes=.c,.cpp,.h \\
+                          -Dsonar.cxx.cppcheck.reportPaths=build-amd64/cppcheck-report.xml \\
+                          -Dsonar.host.url=\${SONARQUBE_URL} \\
+                          -Dsonar.login=\${SONAR_TOKEN} \\
+                          -Dsonar.sourceEncoding=UTF-8 \\
+                          -Dsonar.exclusions=build-*/**,artifacts/**
+                      '''
+                    }
+                  }
+                }
+              }
+            }
+
+            stage('Archive Artifacts') {
+              steps {
+                sh '''
+                  mkdir -p artifacts
+                  cp fluent-bit-src/build-amd64/bin/fluent-bit artifacts/fluent-bit-\${FLUENTBIT_VERSION}-amd64
+                  cp fluent-bit-src/build-arm64/bin/fluent-bit artifacts/fluent-bit-\${FLUENTBIT_VERSION}-arm64
+                '''
+                archiveArtifacts artifacts: 'artifacts/*', fingerprint: true
+              }
+            }
+
             stage('Build & Push Scratch Images') {
               steps {
                 container('gcc') {
@@ -58,6 +162,7 @@ pipelineJob('fluentbit-build-pipeline') {
               }
             }
           } // stages
+
           post {
             success {
               echo "Fluent Bit \${FLUENTBIT_VERSION} multi-arch scratch build completed successfully"
