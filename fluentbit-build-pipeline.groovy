@@ -115,13 +115,13 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
                         export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:\$PATH"
 
                         sonar-scanner \\
-                          -Dsonar.projectKey=${SONAR_PROJECT} \\
+                          -Dsonar.projectKey=\${SONAR_PROJECT} \\
                           -Dsonar.projectName="Fluent Bit" \\
                           -Dsonar.sources=. \\
                           -Dsonar.language=c++ \\
                           -Dsonar.cxx.file.suffixes=.c,.cpp,.h \\
                           -Dsonar.cxx.cppcheck.reportPaths=build-amd64/cppcheck-report.xml \\
-                          -Dsonar.host.url=${SONARQUBE_URL} \\
+                          -Dsonar.host.url=\${SONARQUBE_URL} \\
                           -Dsonar.login=\${SONAR_TOKEN} \\
                           -Dsonar.sourceEncoding=UTF-8 \\
                           -Dsonar.exclusions=build-*/**,artifacts/**
@@ -136,8 +136,8 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
               steps {
                 sh """
                   mkdir -p artifacts
-                  cp fluent-bit-src/build-amd64/bin/fluent-bit artifacts/fluent-bit-${FLUENTBIT_VERSION}-amd64
-                  cp fluent-bit-src/build-arm64/bin/fluent-bit artifacts/fluent-bit-${FLUENTBIT_VERSION}-arm64
+                  cp fluent-bit-src/build-amd64/bin/fluent-bit artifacts/fluent-bit-\${FLUENTBIT_VERSION}-amd64
+                  cp fluent-bit-src/build-arm64/bin/fluent-bit artifacts/fluent-bit-\${FLUENTBIT_VERSION}-arm64
                 """
                 archiveArtifacts artifacts: 'artifacts/*', fingerprint: true
               }
@@ -150,7 +150,7 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
                     sh """
                       for ARCH in amd64 arm64; do
                         BINARY=fluent-bit-src/build-\${ARCH}/bin/fluent-bit
-                        FULL_IMAGE=${HARBOR_REGISTRY}/${HARBOR_PROJECT}/${IMAGE_NAME}:\${FLUENTBIT_VERSION}-\${ARCH}
+                        FULL_IMAGE=\${HARBOR_REGISTRY}/\${HARBOR_PROJECT}/\${IMAGE_NAME}:\${FLUENTBIT_VERSION}-\${ARCH}
 
                         ctr=\$(buildah from scratch)
                         mnt=\$(buildah mount \$ctr)
@@ -171,7 +171,7 @@ pipelineJob('fluentbit-multi-arch-build-scratch') {
 
           post {
             success {
-              echo "Fluent Bit ${FLUENTBIT_VERSION} multi-arch scratch build, SonarQube analysis, and push completed successfully"
+              echo "Fluent Bit \${FLUENTBIT_VERSION} multi-arch scratch build, SonarQube analysis, and push completed successfully"
             }
             failure {
               echo "Build or push failed - check logs"
