@@ -7,8 +7,8 @@ pipeline {
   agent { label 'c-builder' }
   environment {
     FLUENTBIT_VERSION = 'v5.0.2'
-    HARBOR_URL        = 'http://192.168.0.176'
-    HARBOR_REGISTRY   = '192.168.0.176'
+    HARBOR_URL        = 'http://192.168.0.167'
+    HARBOR_REGISTRY   = '192.168.0.167'
     HARBOR_PROJECT    = 'fluentbit'
     IMAGE_NAME        = 'fluent-bit'
   }
