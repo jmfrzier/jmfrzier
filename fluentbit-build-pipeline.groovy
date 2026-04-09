@@ -167,13 +167,13 @@ TOOLCHAIN
                       for ARCH in amd64 arm64; do
                         BINARY="fluent-bit-src/build-\${ARCH}/bin/fluent-bit"
                         FULL_IMAGE="\${HARBOR_REGISTRY}/\${HARBOR_PROJECT}/\${IMAGE_NAME}:\${FLUENTBIT_VERSION}-\${ARCH}"
-                        ctr=\$(buildah from scratch)
-                        mnt=\$(buildah mount \$ctr)
+                        ctr=\$(buildah --storage-driver vfs from scratch)
+                        mnt=\$(buildah --storage-driver vfs mount \$ctr)
                         cp "\$BINARY" "\$mnt/fluent-bit"
-                        buildah config --entrypoint '["/fluent-bit"]' \$ctr
-                        buildah commit \$ctr "\$FULL_IMAGE"
-                        buildah push --storage-driver vfs --tls-verify=false --creds "\${HARBOR_USER}:\${HARBOR_PASS}" "\$FULL_IMAGE"
-                        buildah rm \$ctr
+                        buildah --storage-driver vfs config --entrypoint '["/fluent-bit"]' \$ctr
+                        buildah --storage-driver vfs commit \$ctr "\$FULL_IMAGE"
+                        buildah --storage-driver vfs push --tls-verify=false --creds "\${HARBOR_USER}:\${HARBOR_PASS}" "\$FULL_IMAGE"
+                        buildah --storage-driver vfs rm \$ctr
                       done
                       echo "[SUCCESS] Scratch images pushed for amd64 and arm64"
                     '''
