@@ -88,6 +88,8 @@ TOOLCHAIN
                       -DCMAKE_TOOLCHAIN_FILE=/tmp/arm64-toolchain.cmake \\
                       -DOPENSSL_ROOT_DIR=/usr/lib/aarch64-linux-gnu \\
                       -DOPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu \\
+		      -DOPENSSL_SSL_LIBRARY=/usr/lib/aarch64-linux-gnu/libssl.a \\
+  		      -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/aarch64-linux-gnu/libcrypto.a \\
                       -DFLB_LUAJIT=Off \\
                       -DFLB_BACKTRACE=Off \\
                       -DFLB_RELEASE=On \\
