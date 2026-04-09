@@ -30,10 +30,16 @@ pipelineJob('fluentbit-build-pipeline') {
                       cmake make flex bison libyaml-dev libssl-dev openssl pkg-config \\
                       gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
                       cppcheck unzip curl buildah fuse-overlayfs
+       
+		    # Debian 12 puts opensslconf.h in arch-specific path - symlink for cmake
+                    ln -sf /usr/include/x86_64-linux-gnu/openssl/opensslconf.h \
+                           /usr/include/openssl/opensslconf.h
 
-        	    # Verify OpenSSL headers are present before proceeding
+        	    # Verify
         	    test -f /usr/include/openssl/opensslconf.h || \
-          	      (echo "ERROR: opensslconf.h missing after install" && exit 1)
+          	      (echo "ERROR: opensslconf.h still missing" && exit 1)
+
+        	    echo "OpenSSL headers OK"
                   '''
                 }
               }
