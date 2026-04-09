@@ -49,7 +49,8 @@ pipelineJob('fluentbit-build-pipeline') {
                       -DFLB_STATIC_BUILD=On \\
                       -DFLB_EXAMPLES=Off \\
                       -DFLB_HTTP_SERVER=On \\
-                      -DFLB_OUT_KAFKA=Off
+                      -DFLB_OUT_KAFKA=Off \\
+		      -DFLB_KAFKA=Off
                     make -j\$(nproc)
                     ls -la bin/fluent-bit
                   '''
@@ -83,7 +84,8 @@ TOOLCHAIN
                       -DFLB_STATIC_BUILD=On \\
                       -DFLB_EXAMPLES=Off \\
                       -DFLB_HTTP_SERVER=On \\
-                      -DFLB_OUT_KAFKA=Off
+                      -DFLB_OUT_KAFKA=Off \\
+		      -DFLB_KAFKA=Off
                     make -j\$(nproc)
                     ls -la bin/fluent-bit
                   '''
