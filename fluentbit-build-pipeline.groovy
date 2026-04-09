@@ -91,6 +91,7 @@ TOOLCHAIN
                       -DOPENSSL_ROOT_DIR=/usr/lib/aarch64-linux-gnu \\
   		      -DOPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu \\
 		      -DFLB_LUAJIT=Off \\
+                      -DFLB_BACKTRACE=Off \\
                       -DFLB_RELEASE=On \\
                       -DFLB_TRACE=Off \\
                       -DFLB_JEMALLOC=Off \\
