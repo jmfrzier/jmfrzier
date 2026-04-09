@@ -86,6 +86,8 @@ TOOLCHAIN
                     mkdir -p fluent-bit-src/build-arm64 && cd fluent-bit-src/build-arm64
                     cmake .. \\
                       -DCMAKE_TOOLCHAIN_FILE=/tmp/arm64-toolchain.cmake \\
+                      -DOPENSSL_ROOT_DIR=/usr/lib/aarch64-linux-gnu \\
+  		      -DOPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu \\
                       -DFLB_RELEASE=On \\
                       -DFLB_TRACE=Off \\
                       -DFLB_JEMALLOC=Off \\
