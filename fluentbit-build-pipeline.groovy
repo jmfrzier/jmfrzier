@@ -26,6 +26,7 @@ pipelineJob('fluentbit-build-pipeline') {
               steps {
                 container('gcc') {
                   sh '''
+		    dpkg --add-architecture arm64
                     apt-get update && apt-get install -y --no-install-recommends \\
                       cmake make flex bison libyaml-dev libssl-dev openssl pkg-config \\
                       gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
