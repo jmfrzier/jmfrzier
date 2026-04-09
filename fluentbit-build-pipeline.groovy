@@ -26,22 +26,19 @@ pipelineJob('fluentbit-build-pipeline') {
               steps {
                 container('gcc') {
                   sh '''
-		    dpkg --add-architecture arm64
+                    dpkg --add-architecture arm64
                     apt-get update && apt-get install -y --no-install-recommends \\
                       cmake make flex bison libyaml-dev libssl-dev libssl-dev:arm64 openssl pkg-config \\
                       gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
                       cppcheck unzip curl buildah fuse-overlayfs
 
-                    # Symlink aarch64 version into the generic openssl include dir
-                    # so the cross-compiler finds it without needing -DOPENSSL_INCLUDE_DIR
-                    ln -sf /usr/include/aarch64-linux-gnu/openssl/opensslconf.h \
+                    ln -sf /usr/include/aarch64-linux-gnu/openssl/opensslconf.h \\
                            /usr/include/openssl/opensslconf-arm64.h
 
-                    # Verify it exists
-                    test -f /usr/include/aarch64-linux-gnu/openssl/opensslconf.h || \
+                    test -f /usr/include/aarch64-linux-gnu/openssl/opensslconf.h || \\
                       (echo "ERROR: arm64 opensslconf.h missing" && exit 1)
 
-                    echo "OpenSSL headers OK for arm64 architecture" 
+                    echo "OpenSSL headers OK for arm64 architecture"
                   '''
                 }
               }
@@ -62,8 +59,9 @@ pipelineJob('fluentbit-build-pipeline') {
                       -DFLB_EXAMPLES=Off \\
                       -DFLB_HTTP_SERVER=On \\
                       -DFLB_OUT_KAFKA=Off \\
-		      -DFLB_KAFKA=Off
-                    make -j\$(nproc)
+                      -DFLB_KAFKA=Off
+                    make -j\$(nproc) 2>&1 | tee /tmp/amd64-build.log || \\
+                      (echo "=== LAST 80 LINES ===" && tail -80 /tmp/amd64-build.log && exit 1)
                     ls -la bin/fluent-bit
                   '''
                 }
@@ -89,8 +87,8 @@ TOOLCHAIN
                     cmake .. \\
                       -DCMAKE_TOOLCHAIN_FILE=/tmp/arm64-toolchain.cmake \\
                       -DOPENSSL_ROOT_DIR=/usr/lib/aarch64-linux-gnu \\
-  		      -DOPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu \\
-		      -DFLB_LUAJIT=Off \\
+                      -DOPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu \\
+                      -DFLB_LUAJIT=Off \\
                       -DFLB_BACKTRACE=Off \\
                       -DFLB_RELEASE=On \\
                       -DFLB_TRACE=Off \\
@@ -101,8 +99,9 @@ TOOLCHAIN
                       -DFLB_EXAMPLES=Off \\
                       -DFLB_HTTP_SERVER=On \\
                       -DFLB_OUT_KAFKA=Off \\
-		      -DFLB_KAFKA=Off
-                    make -j\$(nproc)
+                      -DFLB_KAFKA=Off
+                    make -j\$(nproc) 2>&1 | tee /tmp/arm64-build.log || \\
+                      (echo "=== LAST 80 LINES ===" && tail -80 /tmp/arm64-build.log && exit 1)
                     ls -la bin/fluent-bit
                   '''
                 }
