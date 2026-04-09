@@ -31,14 +31,13 @@ pipelineJob('fluentbit-build-pipeline') {
                       cmake make flex bison libyaml-dev libssl-dev openssl pkg-config \\
                       gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
                       cppcheck unzip curl buildah fuse-overlayfs
-                    # Debian 12 moves opensslconf.h to arch-specific path
 
                     # Symlink aarch64 version into the generic openssl include dir
                     # so the cross-compiler finds it without needing -DOPENSSL_INCLUDE_DIR
                     ln -sf /usr/include/aarch64-linux-gnu/openssl/opensslconf.h \
                            /usr/include/openssl/opensslconf-arm64.h
 
-                    # Verify both exist
+                    # Verify it exists
                     test -f /usr/include/aarch64-linux-gnu/openssl/opensslconf.h || \
                       (echo "ERROR: arm64 opensslconf.h missing" && exit 1)
 
