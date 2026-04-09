@@ -27,9 +27,13 @@ pipelineJob('fluentbit-build-pipeline') {
                 container('gcc') {
                   sh '''
                     apt-get update && apt-get install -y --no-install-recommends \\
-                      cmake make flex bison libyaml-dev libssl-dev \\
+                      cmake make flex bison libyaml-dev libssl-dev openssl pkg-config \\
                       gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
                       cppcheck unzip curl buildah fuse-overlayfs
+
+        	    # Verify OpenSSL headers are present before proceeding
+        	    test -f /usr/include/openssl/opensslconf.h || \
+          	      (echo "ERROR: opensslconf.h missing after install" && exit 1)
                   '''
                 }
               }
