@@ -59,6 +59,7 @@ pipelineJob('fluentbit-build-pipeline') {
                       -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \\
                       -DBUILD_SHARED_LIBS=OFF \\
                       -DOPENSSL_USE_STATIC_LIBS=Yes \\
+                      -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE \\
                       -DCMAKE_C_FLAGS="-fcommon" \\
                       -DCMAKE_EXE_LINKER_FLAGS="-static"
                     make -j\$(nproc) 2>&1 | tee /tmp/amd64-build.log || \\
@@ -98,6 +99,7 @@ TOOLCHAIN
                       -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \\
                       -DBUILD_SHARED_LIBS=OFF \\
                       -DOPENSSL_USE_STATIC_LIBS=Yes \\
+                      -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE \\
                       -DCMAKE_C_FLAGS="-fcommon" \\
                       -DCMAKE_EXE_LINKER_FLAGS="-static"
                     make -j\$(nproc) 2>&1 | tee /tmp/arm64-build.log || \\
