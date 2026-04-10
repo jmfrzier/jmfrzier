@@ -16,7 +16,7 @@ pipelineJob('fluentbit-build-pipeline') {
           stages {
             stage('Checkout') {
               steps {
-                container('gcc') {
+                container('bookworm') {
                   sh 'rm -rf fluent-bit-src && git clone --depth 1 --branch \${FLUENTBIT_VERSION} https://github.com/fluent/fluent-bit.git fluent-bit-src'
                 }
               }
@@ -24,7 +24,7 @@ pipelineJob('fluentbit-build-pipeline') {
 
             stage('Install Build Dependencies') {
               steps {
-                container('gcc') {
+                container('bookworm') {
                   sh '''
                     dpkg --add-architecture arm64
                     apt-get update && apt-get install -y --no-install-recommends \\
@@ -46,7 +46,7 @@ pipelineJob('fluentbit-build-pipeline') {
 
             stage('Build amd64 (static)') {
               steps {
-                container('gcc') {
+                container('bookworm') {
                   sh '''
                     mkdir -p fluent-bit-src/build-amd64 && cd fluent-bit-src/build-amd64
                     cmake .. \\
@@ -74,7 +74,7 @@ pipelineJob('fluentbit-build-pipeline') {
 
             stage('Build arm64 (static cross-compile)') {
               steps {
-                container('gcc') {
+                container('bookworm') {
                   sh '''
                     cat > /tmp/arm64-toolchain.cmake << 'TOOLCHAIN'
 set(CMAKE_SYSTEM_NAME Linux)
@@ -114,7 +114,7 @@ TOOLCHAIN
 
             stage('SonarQube Analysis') {
               steps {
-                container('gcc') {
+                container('bookworm') {
                   dir('fluent-bit-src') {
                     withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
                       sh '''
@@ -162,7 +162,7 @@ TOOLCHAIN
 
             stage('Build & Push Scratch Images') {
               steps {
-                container('gcc') {
+                container('bookworm') {
                   withCredentials([usernamePassword(credentialsId: 'harbor-robot-token', usernameVariable: 'HARBOR_USER', passwordVariable: 'HARBOR_PASS')]) {
                     sh '''
                       set -e
