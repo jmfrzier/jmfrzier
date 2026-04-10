@@ -17,7 +17,7 @@ pipelineJob('fluentbit-build-pipeline') {
             stage('Checkout') {
               steps {
                 container('bookworm') {
-                  sh 'rm -rf fluent-bit-src && git clone --depth 1 --branch \${FLUENTBIT_VERSION} https://github.com/fluent/fluent-bit.git fluent-bit-src'
+                  sh 'rm -rf fluent-bit-src && apt-get update && apt-get install git && git clone --depth 1 --branch \${FLUENTBIT_VERSION} https://github.com/fluent/fluent-bit.git fluent-bit-src'
                 }
               }
             }
@@ -57,7 +57,6 @@ pipelineJob('fluentbit-build-pipeline') {
                       -DFLB_WASM=Off \\
                       -DFLB_LUAJIT=Off \\
                       -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \\
-                      -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE \\
                       -DBUILD_SHARED_LIBS=OFF \\
                       -DOPENSSL_USE_STATIC_LIBS=Yes \\
                       -DCMAKE_C_FLAGS="-fcommon" \\
@@ -97,7 +96,6 @@ TOOLCHAIN
                       -DFLB_WASM=Off \\
                       -DFLB_LUAJIT=Off \\
                       -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \\
-                      -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE \\
                       -DBUILD_SHARED_LIBS=OFF \\
                       -DOPENSSL_USE_STATIC_LIBS=Yes \\
                       -DCMAKE_C_FLAGS="-fcommon" \\
