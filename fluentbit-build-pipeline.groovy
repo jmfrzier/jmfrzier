@@ -17,7 +17,7 @@ pipelineJob('fluentbit-build-pipeline') {
             stage('Checkout') {
               steps {
                 container('bookworm') {
-                  sh 'apt-get update && apt-get install -y --no-install-recommends git'
+                  sh 'apt-get update && apt-get install -y --no-install-recommends git ca-certificates && update-ca-certificates'
                   sh 'rm -rf fluent-bit-src && git clone --depth 1 --branch \${FLUENTBIT_VERSION} https://github.com/fluent/fluent-bit.git fluent-bit-src'
                 }
               }
