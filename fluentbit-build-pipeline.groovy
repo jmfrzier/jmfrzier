@@ -61,12 +61,15 @@ pipelineJob('fluentbit-build-pipeline') {
                       -DFLB_OUT_KAFKA=Off \\
                       -DFLB_KAFKA=Off \\
                       -DFLB_SIGNV4=Off \\
-                      -DOPENSSL_USE_STATIC_LIBS=TRUE \\
+                      -DFLB_AWS=Off \\
+                      -DFLB_LUAJIT=Off \\
+                      -DFLB_WASM=Off \\
+                      -DFLB_BACKTRACE=Off \\
                       -DCMAKE_EXE_LINKER_FLAGS="-static"
                     make -j\$(nproc) 2>&1 | tee /tmp/amd64-build.log || \\
                       (echo "=== LAST 80 LINES ===" && tail -80 /tmp/amd64-build.log && exit 1)
                     file bin/fluent-bit
-                    ldd bin/fluent-bit 2>&1 || true
+                    ldd bin/fluent-bit 2>&1 && { echo "ERROR: binary is not statically linked"; exit 1; } || echo "OK: statically linked"
                   '''
                 }
               }
@@ -90,12 +93,6 @@ TOOLCHAIN
                     mkdir -p fluent-bit-src/build-arm64 && cd fluent-bit-src/build-arm64
                     cmake .. \\
                       -DCMAKE_TOOLCHAIN_FILE=/tmp/arm64-toolchain.cmake \\
-                      -DOPENSSL_ROOT_DIR=/usr/lib/aarch64-linux-gnu \\
-                      -DOPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu \\
-		      -DOPENSSL_SSL_LIBRARY=/usr/lib/aarch64-linux-gnu/libssl.a \\
-  		      -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/aarch64-linux-gnu/libcrypto.a \\
-                      -DFLB_LUAJIT=Off \\
-                      -DFLB_BACKTRACE=Off \\
                       -DFLB_RELEASE=On \\
                       -DFLB_TRACE=Off \\
                       -DFLB_JEMALLOC=Off \\
@@ -107,12 +104,15 @@ TOOLCHAIN
                       -DFLB_OUT_KAFKA=Off \\
                       -DFLB_KAFKA=Off \\
                       -DFLB_SIGNV4=Off \\
-                      -DOPENSSL_USE_STATIC_LIBS=TRUE \\
+                      -DFLB_AWS=Off \\
+                      -DFLB_LUAJIT=Off \\
+                      -DFLB_WASM=Off \\
+                      -DFLB_BACKTRACE=Off \\
                       -DCMAKE_EXE_LINKER_FLAGS="-static"
                     make -j\$(nproc) 2>&1 | tee /tmp/arm64-build.log || \\
                       (echo "=== LAST 80 LINES ===" && tail -80 /tmp/arm64-build.log && exit 1)
                     file bin/fluent-bit
-                    ldd bin/fluent-bit 2>&1 || true
+                    ldd bin/fluent-bit 2>&1 && { echo "ERROR: binary is not statically linked"; exit 1; } || echo "OK: statically linked"
                   '''
                 }
               }
