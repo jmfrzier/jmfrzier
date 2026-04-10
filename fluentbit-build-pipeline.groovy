@@ -57,6 +57,7 @@ pipelineJob('fluentbit-build-pipeline') {
                       -DFLB_WASM=Off \\
                       -DFLB_LUAJIT=Off \\
                       -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \\
+                      -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE \\
                       -DBUILD_SHARED_LIBS=OFF \\
                       -DOPENSSL_USE_STATIC_LIBS=Yes \\
                       -DCMAKE_C_FLAGS="-fcommon" \\
@@ -96,6 +97,7 @@ TOOLCHAIN
                       -DFLB_WASM=Off \\
                       -DFLB_LUAJIT=Off \\
                       -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \\
+                      -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE \\
                       -DBUILD_SHARED_LIBS=OFF \\
                       -DOPENSSL_USE_STATIC_LIBS=Yes \\
                       -DCMAKE_C_FLAGS="-fcommon" \\
