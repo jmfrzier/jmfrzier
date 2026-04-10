@@ -29,7 +29,7 @@ pipelineJob('fluentbit-build-pipeline') {
                   sh '''
                     dpkg --add-architecture arm64
                     apt-get update && apt-get install -y --no-install-recommends \\
-                      build-essential cmake make file flex bison libyaml-dev libssl-dev libssl-dev:arm64 libyaml-dev:arm64 openssl pkg-config \\
+                      build-essential cmake make file flex bison libyaml-dev libssl-dev libsasl2-dev libssl-dev:arm64 libyaml-dev:arm64 openssl pkg-config \\
                       gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \\
                       cppcheck unzip curl buildah fuse-overlayfs
 
