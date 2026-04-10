@@ -60,6 +60,8 @@ pipelineJob('fluentbit-build-pipeline') {
                       -DFLB_HTTP_SERVER=On \\
                       -DFLB_OUT_KAFKA=Off \\
                       -DFLB_KAFKA=Off \\
+                      -DFLB_SIGNV4=Off \\
+                      -DOPENSSL_USE_STATIC_LIBS=TRUE \\
                       -DCMAKE_EXE_LINKER_FLAGS="-static"
                     make -j\$(nproc) 2>&1 | tee /tmp/amd64-build.log || \\
                       (echo "=== LAST 80 LINES ===" && tail -80 /tmp/amd64-build.log && exit 1)
@@ -104,6 +106,8 @@ TOOLCHAIN
                       -DFLB_HTTP_SERVER=On \\
                       -DFLB_OUT_KAFKA=Off \\
                       -DFLB_KAFKA=Off \\
+                      -DFLB_SIGNV4=Off \\
+                      -DOPENSSL_USE_STATIC_LIBS=TRUE \\
                       -DCMAKE_EXE_LINKER_FLAGS="-static"
                     make -j\$(nproc) 2>&1 | tee /tmp/arm64-build.log || \\
                       (echo "=== LAST 80 LINES ===" && tail -80 /tmp/arm64-build.log && exit 1)
