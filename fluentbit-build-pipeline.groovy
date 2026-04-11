@@ -96,6 +96,7 @@ TOOLCHAIN
                       -DFLB_DEBUG=Off \\
                       -DFLB_SHARED_LIB=Off \\
                       -DFLB_KAFKA=Off \\
+                      -DFLB_BACKTRACE=Off \\
                       -DFLB_EXAMPLES=Off \\
                       -DFLB_WASM=Off \\
                       -DFLB_LUAJIT=Off \\
