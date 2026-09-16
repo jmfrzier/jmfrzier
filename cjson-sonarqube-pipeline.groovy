@@ -87,7 +87,7 @@ pipeline {
         container('gcc') {
           withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
             sh '''
-              export SONAR_SCANNER_VERSION=5.0.1.3006
+              export SONAR_SCANNER_VERSION=8.1.0.6389
               curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux.zip
               unzip -q sonar-scanner.zip
               export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:\$PATH"

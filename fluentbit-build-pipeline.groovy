@@ -129,7 +129,7 @@ TOOLCHAIN
                                    2> build-amd64/cppcheck-report.xml || true
                         fi
 
-                        SONAR_SCANNER_VERSION=5.0.1.3006
+                        SONAR_SCANNER_VERSION=8.1.0.6389
                         curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux.zip
                         unzip -q sonar-scanner.zip
                         export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:\$PATH"
