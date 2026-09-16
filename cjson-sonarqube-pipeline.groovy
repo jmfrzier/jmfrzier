@@ -12,7 +12,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        container('gcc') {
+        container('bookworm') {
           git url: 'https://github.com/DaveGamble/cJSON.git', branch: 'master'
         }
       }
@@ -20,7 +20,7 @@ pipeline {
 
     stage('Install Tools') {
       steps {
-        container('gcc') {
+        container('bookworm') {
           sh '''
             apt-get update && apt-get install -y --no-install-recommends \\
               cmake make cppcheck python3-pip unzip curl default-jdk
@@ -32,7 +32,7 @@ pipeline {
 
     stage('Build with Coverage') {
       steps {
-        container('gcc') {
+        container('bookworm') {
           sh '''
             mkdir -p build && cd build
             cmake .. -DENABLE_CJSON_TEST=ON \\
@@ -46,7 +46,7 @@ pipeline {
 
     stage('Run Tests') {
       steps {
-        container('gcc') {
+        container('bookworm') {
           sh '''
             cd build
             ctest --output-on-failure
@@ -57,7 +57,7 @@ pipeline {
 
     stage('Generate Reports') {
       steps {
-        container('gcc') {
+        container('bookworm') {
           sh '''
             # Cppcheck static analysis
             cppcheck --xml --xml-version=2 \\
@@ -84,7 +84,7 @@ pipeline {
 
     stage('SonarQube Analysis') {
       steps {
-        container('gcc') {
+        container('bookworm') {
           withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
             sh '''
               export SONAR_SCANNER_VERSION=8.1.0.6389
