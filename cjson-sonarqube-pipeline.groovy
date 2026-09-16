@@ -88,9 +88,9 @@ pipeline {
           withCredentials([string(credentialsId: 'sonar-auth-token', variable: 'SONAR_TOKEN')]) {
             sh '''
               export SONAR_SCANNER_VERSION=8.1.0.6389
-              curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux.zip
+              curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux-x64.zip
               unzip -q sonar-scanner.zip
-              export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux/bin:\$PATH"
+              export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux-x64/bin:\$PATH"
 
               sonar-scanner \\
                 -Dsonar.projectKey=\${SONAR_PROJECT} \\
