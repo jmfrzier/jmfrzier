@@ -23,7 +23,7 @@ pipeline {
         container('bookworm') {
           sh '''
             apt-get update && apt-get install -y --no-install-recommends \\
-              cmake make cppcheck python3-pip unzip curl default-jdk
+              build-essential cmake cppcheck python3-pip unzip curl default-jdk
             pip3 install gcovr --break-system-packages || pip3 install gcovr
           '''
         }
