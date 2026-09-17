@@ -138,7 +138,7 @@ pipeline {
 
     stage('Archive') {
       steps {
-        archiveArtifacts artifacts: 'build/*.bin, build/*.elf, build/*.map',
+        archiveArtifacts artifacts: 'build/*.bin, build/*.elf, build/*.map, build/bootloader/bootloader.bin, build/partition_table/partition-table.bin, build/flash_args',
                          fingerprint: true,
                          allowEmptyArchive: true
       }
