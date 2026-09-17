@@ -96,14 +96,14 @@ pipeline {
                 -Dsonar.projectKey=\${SONAR_PROJECT} \\
                 -Dsonar.projectName="cJSON Library" \\
                 -Dsonar.sources=. \\
-                -Dsonar.language=c++ \\
                 -Dsonar.cxx.file.suffixes=.c,.h \\
+                -Dsonar.cxx.includeDirectories=. \\
                 -Dsonar.cxx.cppcheck.reportPaths=build/cppcheck-report.xml \\
                 -Dsonar.cxx.cobertura.reportPaths=build/coverage.xml \\
                 -Dsonar.host.url=\${SONARQUBE_URL} \\
                 -Dsonar.token=\${SONAR_TOKEN} \\
                 -Dsonar.sourceEncoding=UTF-8 \\
-                -Dsonar.exclusions=build/**,test/**,fuzzing/**
+                -Dsonar.exclusions=build/**,tests/**,fuzzing/**,sonar-scanner-*/**,sonar-scanner.zip
             '''
           }
         }
