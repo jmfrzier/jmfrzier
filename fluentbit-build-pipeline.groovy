@@ -147,7 +147,7 @@ TOOLCHAIN
                           -Dsonar.host.url=\${SONARQUBE_URL} \\
                           -Dsonar.token=\${SONAR_TOKEN} \\
                           -Dsonar.sourceEncoding=UTF-8 \\
-                          -Dsonar.exclusions=build-*/**,artifacts/**,**/*.java,lib/**
+                          -Dsonar.exclusions=build-*/**,artifacts/**,**/*.java,lib/**,sonar-scanner-*/**,sonar-scanner.zip
                       '''
                     }
                   }
