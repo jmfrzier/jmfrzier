@@ -177,15 +177,17 @@ TOOLCHAIN
                       for ARCH in amd64 arm64; do
                         BINARY="fluent-bit-src/build-\${ARCH}/bin/fluent-bit"
                         FULL_IMAGE="\${HARBOR_REGISTRY}/\${HARBOR_PROJECT}/\${IMAGE_NAME}:\${FLUENTBIT_VERSION}-\${ARCH}"
-                        ctr=\$(buildah --storage-driver vfs from scratch)
+                        ctr=\$(buildah --storage-driver vfs from --arch \${ARCH} debian:bookworm-slim)
                         mnt=\$(buildah --storage-driver vfs mount \$ctr)
                         cp "\$BINARY" "\$mnt/fluent-bit"
+                        mkdir -p "\$mnt/etc/ssl/certs"
+                        cp /etc/ssl/certs/ca-certificates.crt "\$mnt/etc/ssl/certs/ca-certificates.crt"
                         buildah --storage-driver vfs config --entrypoint '["/fluent-bit"]' \$ctr
                         buildah --storage-driver vfs commit \$ctr "\$FULL_IMAGE"
                         buildah --storage-driver vfs push --tls-verify=false --creds "\${HARBOR_USER}:\${HARBOR_PASS}" "\$FULL_IMAGE"
                         buildah --storage-driver vfs rm \$ctr
                       done
-                      echo "[SUCCESS] Scratch images pushed for amd64 and arm64"
+                      echo "[SUCCESS] multi-arch images pushed for amd64 and arm64"
                     '''
                   }
                 }
