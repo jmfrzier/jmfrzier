@@ -97,13 +97,13 @@ pipeline {
                   -Dsonar.projectKey=\${SONAR_PROJECT} \\
                   -Dsonar.projectName="ESP32-P4 Brookesia Demo" \\
                   -Dsonar.sources=. \\
-                  -Dsonar.language=c++ \\
                   -Dsonar.cxx.file.suffixes=.c,.cpp,.cc,.cxx,.h,.hpp,.hh \\
+                  -Dsonar.cxx.jsonCompilationDatabase=build/compile_commands.json \\
                   -Dsonar.cxx.cppcheck.reportPaths=build/cppcheck-report.xml \\
                   -Dsonar.host.url=\${SONARQUBE_URL} \\
                   -Dsonar.token=\${SONAR_TOKEN} \\
                   -Dsonar.sourceEncoding=UTF-8 \\
-                  -Dsonar.exclusions=build/**,managed_components/**
+                  -Dsonar.exclusions=build/**,managed_components/**,spiffs/**,sonar-scanner-*/**,sonar-scanner.zip,**/*.png,**/*.mp3,**/*.espdl,**/assets/**
               '''
             }
           }
