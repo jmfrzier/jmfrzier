@@ -104,6 +104,10 @@ TOOLCHAIN
                       -DCMAKE_DISABLE_FIND_PACKAGE_CURL=TRUE \\
                       -DBUILD_SHARED_LIBS=OFF \\
                       -DOPENSSL_USE_STATIC_LIBS=Yes \\
+                      -DOPENSSL_ROOT_DIR=/usr/lib/aarch64-linux-gnu \\
+                      -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/aarch64-linux-gnu/libcrypto.a \\
+                      -DOPENSSL_SSL_LIBRARY=/usr/lib/aarch64-linux-gnu/libssl.a \\
+                      -DOPENSSL_INCLUDE_DIR=/usr/include/aarch64-linux-gnu \\
                       -DCMAKE_C_FLAGS="-fcommon" \\
                       -DCMAKE_EXE_LINKER_FLAGS="-static"
                     make -j\$(nproc) 2>&1 | tee /tmp/arm64-build.log || \\
