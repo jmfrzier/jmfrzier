@@ -175,7 +175,7 @@ TOOLCHAIN
                       for ARCH in amd64 arm64; do
                         BINARY="fluent-bit-src/build-\${ARCH}/bin/fluent-bit"
                         FULL_IMAGE="\${HARBOR_REGISTRY}/\${HARBOR_PROJECT}/\${IMAGE_NAME}:\${FLUENTBIT_VERSION}-\${ARCH}"
-                        ctr=\$(buildah --storage-driver vfs from --arch \${ARCH} debian:bookworm-slim)
+                        ctr=\$(buildah --storage-driver vfs from --arch \${ARCH} gcr.io/distroless/base-debian12)
                         mnt=\$(buildah --storage-driver vfs mount \$ctr)
                         cp "\$BINARY" "\$mnt/fluent-bit"
                         mkdir -p "\$mnt/etc/ssl/certs"
