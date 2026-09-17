@@ -89,7 +89,7 @@ pipeline {
             sh '''
               export SONAR_SCANNER_VERSION=8.1.0.6389
               curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-\${SONAR_SCANNER_VERSION}-linux-x64.zip
-              unzip -q sonar-scanner.zip
+              unzip -q -o sonar-scanner.zip
               export PATH="\$PWD/sonar-scanner-\${SONAR_SCANNER_VERSION}-linux-x64/bin:\$PATH"
 
               sonar-scanner \\
