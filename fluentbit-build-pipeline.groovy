@@ -112,7 +112,7 @@ TOOLCHAIN
                       -DCMAKE_EXE_LINKER_FLAGS="-static"
                     make -j\$(nproc) 2>&1 | tee /tmp/arm64-build.log || \\
                       (echo "=== LAST 80 LINES ===" && tail -80 /tmp/arm64-build.log && exit 1)
-                    strip bin/fluent-bit
+                    aarch64-linux-gnu-strip bin/fluent-bit
                     file bin/fluent-bit
                     ldd bin/fluent-bit 2>&1 && { echo "ERROR: binary is not statically linked"; exit 1; } || true
                   '''
