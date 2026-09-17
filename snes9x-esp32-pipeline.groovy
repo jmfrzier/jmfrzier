@@ -14,7 +14,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git url: 'https://github.com/fcipaq/snes9x_esp32.git', branch: 'master'
+        git url: 'https://github.com/fcipaq/snes9x_esp32.git', branch: 'main'
       }
     }
 
