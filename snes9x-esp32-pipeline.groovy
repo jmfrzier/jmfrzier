@@ -32,6 +32,30 @@ pipeline {
       }
     }
 
+    stage('Patch MIPI DSI driver for IDF 5.5.x') {
+      steps {
+        container('esp-idf') {
+          sh '''
+            # components/lcd/lcd_panel_dpi.c is a vendored copy of ESP-IDF's
+            # internal esp_lcd MIPI-DSI DPI driver, written against an older
+            # IDF internal HAL/LL layout. Patch it to match IDF v5.5.5's
+            # current hal/mipi_dsi_*_ll.h symbols (verified against IDF's own
+            # mipi_dsi_hal.c calling convention: LL functions take hal->host
+            # / hal->bridge directly).
+            sed -i 's/MIPI_DSI_LL_EVENT_UNDERRUN/MIPI_DSI_BRG_LL_EVENT_UNDERRUN/g' components/lcd/lcd_panel_dpi.c
+            sed -i 's/mipi_dsi_hal_host_dpi_set_color_coding(hal, out_color_format, 0)/mipi_dsi_host_ll_dpi_set_color_coding(hal->host, out_color_format, 0)/' components/lcd/lcd_panel_dpi.c
+            sed -i 's/mipi_dsi_brg_ll_set_input_color_space(hal->bridge, COLOR_SPACE_TYPE(in_color_format))/mipi_dsi_brg_ll_set_input_color_format(hal->bridge, in_color_format)/' components/lcd/lcd_panel_dpi.c
+
+            if grep -qE 'MIPI_DSI_LL_EVENT_UNDERRUN|mipi_dsi_hal_host_dpi_set_color_coding|mipi_dsi_brg_ll_set_input_color_space' components/lcd/lcd_panel_dpi.c; then
+              echo "ERROR: MIPI DSI compat patch did not fully apply — upstream file may have changed" >&2
+              exit 1
+            fi
+            echo "MIPI DSI driver patched for IDF 5.5.x"
+          '''
+        }
+      }
+    }
+
     stage('Setup') {
       steps {
         container('esp-idf') {
