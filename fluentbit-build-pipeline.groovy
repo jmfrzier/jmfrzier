@@ -6,7 +6,7 @@ pipelineJob('fluentbit-build-pipeline') {
         pipeline {
           agent { label 'c-builder' }
           environment {
-            FLUENTBIT_VERSION = 'v5.0.2'
+            FLUENTBIT_VERSION = 'v5.1.2'
             HARBOR_REGISTRY = '192.168.0.167'
             HARBOR_PROJECT = 'fluentbit'
             IMAGE_NAME = 'fluent-bit'
