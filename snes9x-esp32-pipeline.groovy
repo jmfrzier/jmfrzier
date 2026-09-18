@@ -56,6 +56,27 @@ pipeline {
       }
     }
 
+    stage('Target chip revision <3.0') {
+      steps {
+        container('esp-idf') {
+          sh '''
+            # ESP-IDF 5.5.x defaults to requiring ESP32-P4 revision v3.1+
+            # (CONFIG_ESP32P4_REV_MIN_301), since Espressif calls out a
+            # "huge hardware difference" between the <3.0 and >=3.0 silicon
+            # families. The physical P4-Function-EV-Board in use here
+            # identifies as revision v1.0, so target that explicitly —
+            # otherwise the built bootloader refuses to flash onto it
+            # ("requires chip revision in range [v3.1 - v3.99]").
+            cat >> sdkconfig.defaults << 'EOF'
+CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y
+CONFIG_ESP32P4_REV_MIN_100=y
+EOF
+            grep -q "CONFIG_ESP32P4_REV_MIN_100=y" sdkconfig.defaults
+          '''
+        }
+      }
+    }
+
     stage('Setup') {
       steps {
         container('esp-idf') {
